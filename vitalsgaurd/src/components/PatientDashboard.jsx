@@ -4,7 +4,33 @@ import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { patients } from '../data/mockVitals';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASES = ['http://localhost:5000/api', 'http://localhost:8000/api'];
+
+async function postJsonWithFallback(urls, payload) {
+  let lastError = 'Service is currently unavailable.';
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        lastError = message || `Request failed on ${url}`;
+        continue;
+      }
+
+      return await response.json();
+    } catch (err) {
+      lastError = err?.message || `Could not connect to ${url}`;
+    }
+  }
+
+  throw new Error(lastError);
+}
 
 const situationDescriptions = {
   'Normal': 'Vitals are stable and within normal baseline parameters. No immediate anomalies detected.',
@@ -113,56 +139,110 @@ export default function PatientDashboard({ userId, onLogout }) {
         return newHistory;
       });
 
-      // Fetch Model 01 (Current Classification)
+      const payload = {
+        heart_rate: hrNum,
+        spo2: spo2Num,
+        temperature: tempNum,
+        systolic_bp: Number(inputBpSystolic),
+        diastolic_bp: Number(inputBpDiastolic),
+        bp_systolic: Number(inputBpSystolic),
+        bp_diastolic: Number(inputBpDiastolic)
+      };
+
+      // Fetch Disease Fingerprints (Current Classification)
       try {
-        const res01 = await fetch(`${API_BASE}/predict/disease`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            heart_rate: hrNum,
-            spo2: spo2Num,
-            temperature: tempNum,
-            systolic_bp: Number(inputBpSystolic),
-            diastolic_bp: Number(inputBpDiastolic),
-            bp_systolic: Number(inputBpSystolic),
-            bp_diastolic: Number(inputBpDiastolic)
-          })
-        });
-        const data01 = await res01.json();
-        if (data01.all_probabilities) {
-          const chartData = Object.entries(data01.all_probabilities)
-            .map(([name, prob]) => ({ name: name.replace('_', ' '), Probability: parseFloat((prob * 100).toFixed(1)) }))
-            .sort((a, b) => b.Probability - a.Probability).slice(0, 5);
-          setMlResult({ ...data01, chartData });
-          const maxProb = Math.max(...Object.values(data01.all_probabilities));
+        const modelUrls = API_BASES.flatMap((base) => [
+          `${base}/fingerprint`,
+          `${base}/predict/disease`
+        ]);
+        const data01 = await postJsonWithFallback(modelUrls, payload);
+
+        let predictedCondition = 'Normal';
+        let confidence = 0;
+        let allProbabilities = {};
+        let chartData = [];
+
+        if (Array.isArray(data01.fingerprints) && data01.fingerprints.length > 0) {
+          const sortedFingerprints = [...data01.fingerprints].sort((a, b) => (b.probability || 0) - (a.probability || 0));
+
+          allProbabilities = sortedFingerprints.reduce((acc, fp) => {
+            if (fp?.disease) acc[fp.disease] = fp.probability || 0;
+            return acc;
+          }, {});
+
+          chartData = sortedFingerprints.map(fp => ({
+            name: fp.disease.replace('_', ' '),
+            Probability: parseFloat(((fp.probability || 0) * 100).toFixed(1))
+          })).slice(0, 5);
+
+          predictedCondition = sortedFingerprints[0]?.disease || 'Normal';
+          confidence = sortedFingerprints[0]?.probability || 0;
+        } else if (data01.all_probabilities && typeof data01.all_probabilities === 'object') {
+          allProbabilities = data01.all_probabilities;
+          const sortedProbabilities = Object.entries(allProbabilities).sort(([, a], [, b]) => b - a);
+
+          chartData = sortedProbabilities.map(([name, prob]) => ({
+            name: name.replace('_', ' '),
+            Probability: parseFloat((prob * 100).toFixed(1))
+          })).slice(0, 5);
+
+          predictedCondition = data01.predicted_condition || sortedProbabilities[0]?.[0] || 'Normal';
+          confidence = typeof data01.confidence === 'number' ? data01.confidence : (sortedProbabilities[0]?.[1] || 0);
+        }
+
+        if (Object.keys(allProbabilities).length > 0) {
+          setMlResult({ 
+            predicted_condition: predictedCondition,
+            confidence,
+            chartData,
+            all_probabilities: allProbabilities
+          });
+
+          const maxProb = Math.max(...Object.values(allProbabilities));
           const currentScore = Math.round(maxProb * 100);
           setSeverityScore(currentScore);
           
-          // Fetch trajectory prediction for next 24 hours
+          // Prefer dedicated trajectory endpoint; fallback to EWS-based synthetic trajectory.
           try {
-            const resTrajectory = await fetch(`${API_BASE}/predict/trajectory`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                heart_rate: hrNum,
-                spo2: spo2Num,
-                temperature: tempNum,
-                systolic_bp: Number(inputBpSystolic),
-                diastolic_bp: Number(inputBpDiastolic),
-                bp_systolic: Number(inputBpSystolic),
-                bp_diastolic: Number(inputBpDiastolic)
-              })
-            });
-            const trajectoryRes = await resTrajectory.json();
+            const trajectoryRes = await postJsonWithFallback(
+              API_BASES.map((base) => `${base}/predict/trajectory`),
+              payload
+            );
             if (trajectoryRes.trajectory && Array.isArray(trajectoryRes.trajectory)) {
               console.log("✓ Trajectory data received:", trajectoryRes.trajectory);
               setTrajectoryData(trajectoryRes.trajectory);
+            } else {
+              throw new Error('Trajectory payload missing');
             }
           } catch (trajErr) {
-            console.log("Trajectory endpoint not available", trajErr);
+            console.log("Trajectory endpoint not available, falling back to EWS", trajErr);
+            try {
+              const data07 = await postJsonWithFallback(
+                API_BASES.map((base) => `${base}/ews`),
+                payload
+              );
+              if (data07.ews) {
+                const ewsScore = data07.ews.score;
+                const simulatedTrajectory = [];
+              for (let hour = 0; hour <= 24; hour++) {
+                let riskValue = currentScore;
+                const isAbnormal = ewsScore > 3;
+                if (isAbnormal) {
+                  riskValue = Math.min(currentScore + (hour * 2.5), 95);
+                  if (hour > 12) riskValue = Math.max(riskValue - (hour - 12) * 1.2, currentScore);
+                } else {
+                  riskValue = Math.max(currentScore - (hour * 1.5), Math.max(0, currentScore - 25));
+                }
+                simulatedTrajectory.push({ hour, risk: Math.round(riskValue) });
+              }
+              setTrajectoryData(simulatedTrajectory);
+            }
+            } catch (ewsErr) {
+              console.log("EWS trajectory fallback active", ewsErr);
+            }
           }
         }
-      } catch (err) { console.error("Model 01 failed", err); }
+      } catch (err) { console.error("Fingerprint API failed", err); }
     }, 400);
     return () => clearTimeout(timer);
   }, [inputHr, inputSpo2, inputTemp, inputBpSystolic, inputBpDiastolic]);
@@ -223,7 +303,7 @@ export default function PatientDashboard({ userId, onLogout }) {
   // Send Dataset Label to Backend
   const handleSaveDatapoint = async (label) => {
     try {
-      await axios.post(`${API_BASE}/save-datapoint`, {
+      const savePayload = {
         heart_rate: currentHr,
         spo2: currentSpo2,
         temperature: currentTemp,
@@ -232,7 +312,24 @@ export default function PatientDashboard({ userId, onLogout }) {
         label: label,
         patient_id: userId,
         timestamp: new Date().toISOString()
-      });
+      };
+
+      let saveSucceeded = false;
+      let saveError = null;
+      for (const base of API_BASES) {
+        try {
+          await axios.post(`${base}/save-datapoint`, savePayload);
+          saveSucceeded = true;
+          break;
+        } catch (err) {
+          saveError = err;
+        }
+      }
+
+      if (!saveSucceeded) {
+        throw saveError || new Error('Save datapoint failed');
+      }
+
       alert(`✅ Datapoint saved as: ${label}`);
       setDatasetLabel('');
     } catch (err) {
@@ -499,7 +596,7 @@ export default function PatientDashboard({ userId, onLogout }) {
                   <div style={{ marginBottom: '2rem' }}>
                     <h4 style={{ margin: '0 0 1rem 0', color: '#7C3AED', fontSize: '1.1rem', fontWeight: '600' }}>Top Risk Conditions</h4>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                      {Object.entries(mlResult.all_probabilities)
+                      {Object.entries(mlResult.all_probabilities || {})
                         .sort(([, a], [, b]) => b - a)
                         .slice(0, 4)
                         .map(([condition, prob], idx) => {
