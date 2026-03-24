@@ -36,8 +36,8 @@ export default function Simulator() {
           // Generate a simulated trajectory based on the EWS
           const simulatedResult = {
             overall_trajectory: level === 'stable' ? 'improving' : 'deteriorating',
-            '2h':  { condition: level === 'stable' ? 'Stable' : 'Slight Risk' },
-            '6h':  { condition: level === 'stable' ? 'Normal' : 'Medical Review' },
+            '2h': { condition: level === 'stable' ? 'Stable' : 'Slight Risk' },
+            '6h': { condition: level === 'stable' ? 'Normal' : 'Medical Review' },
             '12h': { condition: level === 'stable' ? 'Baseline' : 'Early Warning' },
             '24h': { condition: level === 'stable' ? 'Recovery' : 'Clinical Watch' }
           };
@@ -55,12 +55,12 @@ export default function Simulator() {
         <span style={{ fontSize: '1.2rem' }}>{icon}</span>
         <span style={{ fontWeight: '600', color: '#475569', fontSize: '0.95rem' }}>{label}</span>
       </div>
-      <input 
-        type="range" 
-        min={label.includes('HR') ? 40 : label.includes('SpO2') ? 70 : 35} 
-        max={label.includes('HR') ? 200 : label.includes('SpO2') ? 100 : 42} 
+      <input
+        type="range"
+        min={label.includes('HR') ? 40 : label.includes('SpO2') ? 70 : 35}
+        max={label.includes('HR') ? 200 : label.includes('SpO2') ? 100 : 42}
         step={step}
-        value={value} 
+        value={value}
         onChange={(e) => setVal(Number(e.target.value))}
         style={{ width: '100%', accentColor: '#7C3AED', height: '6px', cursor: 'pointer' }}
       />
@@ -86,20 +86,20 @@ export default function Simulator() {
             <span style={{ fontSize: '1.5rem' }}>🎮</span>
             <h2 style={{ margin: 0, color: '#4338ca', fontSize: '1.4rem' }}>Interactive Health Simulator</h2>
           </div>
-          
+
           <AdjustmentRow label="Heart Rate" value={hr} unit="BPM" setVal={setHr} step={5} icon="❤️" />
           <AdjustmentRow label="SpO₂ Level" value={spo2} unit="%" setVal={setSpo2} step={1} icon="💨" />
           <AdjustmentRow label="Temperature" value={temp} unit="°C" setVal={setTemp} step={0.2} icon="🌡️" />
-          
+
           <div style={{ gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '1rem' }}>
-             <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px' }}>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>🫁 Respiration</div>
-                <input type="number" value={respRate} onChange={e => setRespRate(Number(e.target.value))} style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.2rem', fontWeight: 'bold', color: '#4338ca' }} />
-             </div>
-             <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px' }}>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>📊 Blood Pressure (Sys)</div>
-                <input type="number" value={sysBp} onChange={e => setSysBp(Number(e.target.value))} style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.2rem', fontWeight: 'bold', color: '#4338ca' }} />
-             </div>
+            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px' }}>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>🫁 Respiration</div>
+              <input type="number" value={respRate} onChange={e => setRespRate(Number(e.target.value))} style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.2rem', fontWeight: 'bold', color: '#4338ca' }} />
+            </div>
+            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px' }}>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>📊 Blood Pressure (Sys)</div>
+              <input type="number" value={sysBp} onChange={e => setSysBp(Number(e.target.value))} style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.2rem', fontWeight: 'bold', color: '#4338ca' }} />
+            </div>
           </div>
         </div>
 
@@ -126,11 +126,11 @@ export default function Simulator() {
           {mlResult && (
             <div style={{ marginTop: '2.5rem', background: '#f5f3ff', borderLeft: '6px solid #4338ca', padding: '1.5rem', borderRadius: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
-                 <span style={{ fontWeight: '800', color: '#4338ca', fontSize: '0.9rem' }}>AI Insight:</span>
+                <span style={{ fontWeight: '800', color: '#4338ca', fontSize: '0.9rem' }}>AI Insight:</span>
               </div>
               <p style={{ margin: 0, color: '#1e1b4b', fontSize: '0.95rem', lineHeight: 1.6, fontWeight: '500' }}>
-                 Based on the current trajectory, the patient's condition is likely to remain <strong>{mlResult.overall_trajectory}</strong>. 
-                 Observe {mlResult['2h'].condition.toLowerCase()} trends closely over the next few hours.
+                Based on the current trajectory, the patient's condition is likely to remain <strong>{mlResult.overall_trajectory}</strong>.
+                Observe {mlResult['2h'].condition.toLowerCase()} trends closely over the next few hours.
               </p>
             </div>
           )}
