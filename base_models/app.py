@@ -16,6 +16,16 @@ except Exception as e:
     print(f"❌ Error loading What-If module: {e}")
     what_if_loaded = False
 
+# Load Model 03 (Trend Predictor)
+try:
+    trend_module = importlib.import_module("03_trend_prediction.predict")
+    predict_trend = trend_module.predict_trend
+    trend_loaded = True
+    print("✅ Model 03 (Trend) loaded successfully!")
+except Exception as e:
+    print(f"❌ Error loading Model 03 (Trend): {e}")
+    trend_loaded = False
+
 app = Flask(__name__)
 # Enable CORS so the React frontend can communicate with this API
 CORS(app)
@@ -87,6 +97,57 @@ def predict_whatif():
         # The simulate_whatif function handles defaults if keys are missing
         result = simulate_whatif(data)
         return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/predict/trend", methods=["POST"])
+def predict_trend_route():
+    if not trend_loaded:
+        return jsonify({"error": "Model 03 Trend Predictor not loaded."}), 500
+        
+    try:
+        data = request.json
+        if not data or "sequence" not in data:
+            return jsonify({"error": "No 'sequence' provided in JSON payload."}), 400
+            
+        result = predict_trend(data["sequence"])
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/explain-trend", methods=["POST"])
+def explain_trend_route():
+    try:
+        data = request.json
+        trend = data.get("trend", "Stable")
+        conf = data.get("confidence", 0.0)
+        vitals = data.get("vitals", {})
+
+        # Heuristic-based clinical reasoning
+        hr = vitals.get("heart_rate", 75)
+        spo2 = vitals.get("spo2", 96)
+        temp = vitals.get("temperature", 36.6)
+        
+        explanation = f"Patient trajectory is {trend.lower()} with {conf*100:.0f}% confidence. "
+        
+        if trend.lower() == "deteriorating":
+            if hr > 100 and spo2 < 94:
+                explanation += "Rising heart rate combined with falling oxygen saturation indicates significant clinical stress."
+            elif temp > 38.5:
+                explanation += "Persistent high fever is contributing to the deteriorating trend."
+            else:
+                explanation += "Multiple vital markers are trending away from the normal baseline."
+        elif trend.lower() == "improving":
+            if hr < 100 and spo2 > 95:
+                explanation += "Heart rate is stabilizing while oxygen saturation remains optimal."
+            else:
+                explanation += "Vitals are gradually returning to the expected physiological baseline."
+        else:
+            explanation += "Vitals remain within a stable range with no significant immediate changes detected."
+            
+        return jsonify({"explanation": explanation})
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500

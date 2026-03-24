@@ -13,14 +13,24 @@ import joblib
 import tensorflow as tf
 
 FEATURES = ["heart_rate", "spo2", "temperature", "respiratory_rate"]
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
 
+
+# Caching for Direct In-Memory Inference
+_LOADED_MODEL = None
+_LOADED_ENCODER = None
+_LOADED_PARAMS = None
 
 def load_model():
-    model_dir = "03_trend_prediction/model"
-    model = tf.keras.models.load_model(os.path.join(model_dir, "trend_lstm.keras"))
-    le = joblib.load(os.path.join(model_dir, "trend_encoder.pkl"))
-    norm_params = joblib.load(os.path.join(model_dir, "normalization_params.pkl"))
-    return model, le, norm_params
+    """Load model with local caching for direct, low-latency usage."""
+    global _LOADED_MODEL, _LOADED_ENCODER, _LOADED_PARAMS
+    
+    if _LOADED_MODEL is None:
+        _LOADED_MODEL = tf.keras.models.load_model(os.path.join(MODEL_DIR, "trend_lstm.keras"))
+        _LOADED_ENCODER = joblib.load(os.path.join(MODEL_DIR, "trend_encoder.pkl"))
+        _LOADED_PARAMS = joblib.load(os.path.join(MODEL_DIR, "normalization_params.pkl"))
+        
+    return _LOADED_MODEL, _LOADED_ENCODER, _LOADED_PARAMS
 
 
 def predict_trend(sequence):
