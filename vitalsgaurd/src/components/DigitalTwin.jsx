@@ -12,10 +12,10 @@ import { normalizeRegion } from '../track5/digitalTwin/digitalTwinMapper';
 // ─────────────────────────────────────────────────────────────────────────────
 const MODEL_HEIGHT = 3.6;
 const MARKER_POSITIONS = {
-  heart: [MODEL_HEIGHT * 0.08,  MODEL_HEIGHT * 0.76, MODEL_HEIGHT * 0.10],
+  heart: [MODEL_HEIGHT * 0.08, MODEL_HEIGHT * 0.76, MODEL_HEIGHT * 0.10],
   lungs: [MODEL_HEIGHT * -0.05, MODEL_HEIGHT * 0.72, MODEL_HEIGHT * 0.10],
-  body:  [MODEL_HEIGHT * 0.02,  MODEL_HEIGHT * 0.58, MODEL_HEIGHT * 0.10],
-  brain: [0,                    MODEL_HEIGHT * 0.96, 0],
+  body: [MODEL_HEIGHT * 0.02, MODEL_HEIGHT * 0.58, MODEL_HEIGHT * 0.10],
+  brain: [0, MODEL_HEIGHT * 0.96, 0],
 };
 
 // ── Real-time ECG Trace ───────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ function EcgTrace({ scanData, color = '#38bdf8' }) {
       <div style={{ fontSize: '0.65rem', color, textTransform: 'uppercase', marginBottom: 4, opacity: 0.8, letterSpacing: 1 }}>Live ECG Track</div>
       <svg width="200" height="40" viewBox="0 0 200 100" style={{ overflow: 'visible' }}>
         <polyline fill="none" stroke={color} strokeWidth="2.5" points={points.join(' ')} strokeLinejoin="round" />
-        <polyline fill="none" stroke={color} strokeWidth="6"   points={points.join(' ')} strokeLinejoin="round" opacity="0.2" />
+        <polyline fill="none" stroke={color} strokeWidth="6" points={points.join(' ')} strokeLinejoin="round" opacity="0.2" />
       </svg>
     </div>
   );
@@ -61,12 +61,12 @@ function EcgTrace({ scanData, color = '#38bdf8' }) {
 
 // ── Pulsing anomaly sphere ────────────────────────────────────────────────────
 function PulsingNode({ color, onClick, hovered, onHover, onUnhover }) {
-  const ringRef  = useRef();
+  const ringRef = useRef();
   const innerRef = useRef();
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (ringRef.current)  ringRef.current.scale.setScalar(1 + Math.sin(t * 4) * 0.25);
+    if (ringRef.current) ringRef.current.scale.setScalar(1 + Math.sin(t * 4) * 0.25);
     if (innerRef.current) innerRef.current.material.emissiveIntensity = 3 + Math.sin(t * 5) * 2;
   });
 
@@ -87,8 +87,8 @@ function PulsingNode({ color, onClick, hovered, onHover, onUnhover }) {
 // ── Info Card ─────────────────────────────────────────────────────────────────
 function InfoPanel({ scanData, label, color, onClose }) {
   const displayLabel = scanData?.ui_label || scanData?.condition || label || 'Anomaly Detected';
-  const consensus    = scanData?.consensus || scanData?.description || 'AI analysis flags a health anomaly.';
-  const confidence   = scanData?.lstm_result?.confidence
+  const consensus = scanData?.consensus || scanData?.description || 'AI analysis flags a health anomaly.';
+  const confidence = scanData?.lstm_result?.confidence
     ? Math.round(scanData.lstm_result.confidence * 100)
     : (scanData?.confidence ? Math.round(scanData.confidence * 100) : 'N/A');
 
@@ -112,14 +112,14 @@ function InfoPanel({ scanData, label, color, onClose }) {
 // ── Human Model ───────────────────────────────────────────────────────────────
 function HumanModel({ scanData, isScanning }) {
   const [showInfo, setShowInfo] = useState(false);
-  const [hovered, setHovered]   = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [modelReady, setModelReady] = useState(false);
-  const [scale, setScale]           = useState(1);
-  const [offset, setOffset]         = useState([0, 0, 0]);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState([0, 0, 0]);
 
-  const obj      = useLoader(OBJLoader, '/models/human.obj');
+  const obj = useLoader(OBJLoader, '/models/human.obj');
   const groupRef = useRef();
-  const primRef  = useRef();
+  const primRef = useRef();
 
   // Apply material once
   useEffect(() => {
@@ -145,7 +145,7 @@ function HumanModel({ scanData, isScanning }) {
       primRef.current.updateMatrixWorld(true);
 
       const box = new THREE.Box3().setFromObject(primRef.current);
-      const sz  = new THREE.Vector3();
+      const sz = new THREE.Vector3();
       const ctr = new THREE.Vector3();
       box.getSize(sz);
       box.getCenter(ctr);
@@ -166,10 +166,10 @@ function HumanModel({ scanData, isScanning }) {
   });
 
   const activeRegionKey = normalizeRegion(scanData);
-  const markerPos       = MARKER_POSITIONS[activeRegionKey] || null;
+  const markerPos = MARKER_POSITIONS[activeRegionKey] || null;
 
   const glowClr = scanData?.heatmap_colour || '#ef4444';
-  const labels  = { heart: 'Cardiac Region', lungs: 'Pulmonary Region', body: 'Systemic Health', brain: 'Neurological Analysis' };
+  const labels = { heart: 'Cardiac Region', lungs: 'Pulmonary Region', body: 'Systemic Health', brain: 'Neurological Analysis' };
 
   return (
     <group ref={groupRef}>

@@ -86,8 +86,8 @@ export default function DoctorDashboard({ onLogout }) {
 				<div className="patient-summary">
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 						<h2>{activePatient.name} - Real Time Vital Model</h2>
-						<button 
-							onClick={runDoctorAnalysis} 
+						<button
+							onClick={runDoctorAnalysis}
 							disabled={analyzing}
 							style={{ padding: '0.6rem 1.2rem', backgroundColor: '#7C3AED', color: 'white', border: 'none', borderRadius: '8px', cursor: analyzing ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
 						>
@@ -123,18 +123,30 @@ export default function DoctorDashboard({ onLogout }) {
 							{/* Agent Feed */}
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
 								{[
-									{ key: 'monitoring', icon: '📈', color: '#38bdf8', label: 'Monitoring Agent', bg: '#eff6ff',
-									  text: scanResult.debate?.monitoring_view },
-									{ key: 'diagnosis',  icon: '🩺', color: '#f472b6', label: 'Diagnosis Agent',  bg: '#fdf2f8',
-									  text: scanResult.debate?.diagnosis_view },
-									{ key: 'debate',     icon: '⚖️', color: '#c084fc', label: 'Debate Coordinator', bg: '#faf5ff',
-									  text: `Consensus reached (Disagreement score: ${scanResult.disagreement_score}/10)\n${scanResult.debate?.consensus || scanResult.consensus}` },
-									{ key: 'explanation',icon: '🗣️', color: '#fbbf24', label: 'Explanation Agent', bg: '#fefce8',
-									  text: scanResult.explanation?.voice_summary || scanResult.voice_summary },
-									{ key: 'actions',    icon: '⚡', color: '#22c55e', label: 'Action Agent', bg: '#f0fdf4',
-									  text: (scanResult.actions || []).map((a, i) => `${i + 1}. ${a}`).join('\n') },
-									{ key: 'emergency',  icon: '🚨', color: '#ef4444', label: 'Emergency Agent', bg: '#fef2f2',
-									  text: `Urgency: ${scanResult.emergency?.urgency_note}\nDispatch Alert: ${scanResult.emergency?.dispatch_alert ? 'YES ⚠️' : 'NO ✓'}` },
+									{
+										key: 'monitoring', icon: '📈', color: '#38bdf8', label: 'Monitoring Agent', bg: '#eff6ff',
+										text: scanResult.debate?.monitoring_view
+									},
+									{
+										key: 'diagnosis', icon: '🩺', color: '#f472b6', label: 'Diagnosis Agent', bg: '#fdf2f8',
+										text: scanResult.debate?.diagnosis_view
+									},
+									{
+										key: 'debate', icon: '⚖️', color: '#c084fc', label: 'Debate Coordinator', bg: '#faf5ff',
+										text: `Consensus reached (Disagreement score: ${scanResult.disagreement_score}/10)\n${scanResult.debate?.consensus || scanResult.consensus}`
+									},
+									{
+										key: 'explanation', icon: '🗣️', color: '#fbbf24', label: 'Explanation Agent', bg: '#fefce8',
+										text: scanResult.explanation?.voice_summary || scanResult.voice_summary
+									},
+									{
+										key: 'actions', icon: '⚡', color: '#22c55e', label: 'Action Agent', bg: '#f0fdf4',
+										text: (scanResult.actions || []).map((a, i) => `${i + 1}. ${a}`).join('\n')
+									},
+									{
+										key: 'emergency', icon: '🚨', color: '#ef4444', label: 'Emergency Agent', bg: '#fef2f2',
+										text: `Urgency: ${scanResult.emergency?.urgency_note}\nDispatch Alert: ${scanResult.emergency?.dispatch_alert ? 'YES ⚠️' : 'NO ✓'}`
+									},
 								].filter(item => item.text).map(item => (
 									<div key={item.key} style={{ background: item.bg, padding: '1rem 1.2rem', borderRadius: '12px', borderLeft: `4px solid ${item.color}` }}>
 										<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>

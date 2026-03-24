@@ -93,7 +93,7 @@ export default function IntegratedHealthAnalyzer() {
   // Mock data generator for demo
   const generateMockAnalysis = (vitalsToAnalyze) => {
     const confidenceFromHR = vitalsToAnalyze.heart_rate > 100 ? 0.65 : vitalsToAnalyze.heart_rate < 60 ? 0.70 : 0.95;
-    
+
     return {
       status: 'success',
       model01: {
@@ -158,10 +158,10 @@ export default function IntegratedHealthAnalyzer() {
 
         // Update vitals history
         const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          hour12: true 
+        const timeStr = now.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
         });
 
         setVitalsHistory(prev => [
@@ -194,10 +194,10 @@ export default function IntegratedHealthAnalyzer() {
         });
 
         const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          hour12: true 
+        const timeStr = now.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
         });
 
         setVitalsHistory(prev => [
@@ -294,7 +294,7 @@ export default function IntegratedHealthAnalyzer() {
         <div className="card diagnosis-card">
           <div className="card-header">
             <h2>🤖 AI Diagnosis (Model 01)</h2>
-            <button 
+            <button
               className="simulator-toggle"
               onClick={() => setShowSimulator(!showSimulator)}
             >
@@ -306,13 +306,13 @@ export default function IntegratedHealthAnalyzer() {
             <div className="primary-condition">
               <h3>{diagnosis.predicted_condition}</h3>
               <div className="confidence-bar">
-                <div 
+                <div
                   className="confidence-fill"
                   style={{
                     width: `${diagnosis.confidence * 100}%`,
-                    backgroundColor: diagnosis.confidence > 0.7 ? COLORS.red : 
-                                     diagnosis.confidence > 0.4 ? COLORS.amber : 
-                                     COLORS.green
+                    backgroundColor: diagnosis.confidence > 0.7 ? COLORS.red :
+                      diagnosis.confidence > 0.4 ? COLORS.amber :
+                        COLORS.green
                   }}
                 ></div>
               </div>
@@ -396,7 +396,7 @@ export default function IntegratedHealthAnalyzer() {
                 <XAxis dataKey="time" />
                 <YAxis yAxisId="left" label={{ value: 'HR & SpO2', angle: -90, position: 'insideLeft' }} />
                 <YAxis yAxisId="right" orientation="right" label={{ value: 'Temp (°C) & BP (mmHg)', angle: 90, position: 'insideRight' }} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
                     backgroundColor: '#1f2937',
                     border: `2px solid ${COLORS.purple}`,
@@ -441,7 +441,7 @@ export default function IntegratedHealthAnalyzer() {
                     <CartesianGrid strokeDasharray="3 3" stroke={COLORS.slate} />
                     <XAxis dataKey="time" />
                     <YAxis label={{ value: 'Risk Score (%)', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value) => `${value}%`}
                       contentStyle={{
                         backgroundColor: '#1f2937',
@@ -450,11 +450,11 @@ export default function IntegratedHealthAnalyzer() {
                         color: '#fff'
                       }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="risk" 
-                      stroke={COLORS.purple} 
-                      fillOpacity={1} 
+                    <Area
+                      type="monotone"
+                      dataKey="risk"
+                      stroke={COLORS.purple}
+                      fillOpacity={1}
                       fill="url(#colorRisk)"
                       dot={{ r: 5, fill: COLORS.purple }}
                     />
@@ -473,9 +473,9 @@ export default function IntegratedHealthAnalyzer() {
                       <div className="risk-badge" style={{ fontSize: '1.2em' }}>
                         {riskScore.toFixed(1)}%
                       </div>
-                      <StatusBadge 
-                        level={pred.risk_level} 
-                        label={pred.risk_level?.toUpperCase() || 'N/A'} 
+                      <StatusBadge
+                        level={pred.risk_level}
+                        label={pred.risk_level?.toUpperCase() || 'N/A'}
                       />
                       <div className="condition-text" style={{ fontSize: '0.85em' }}>
                         {pred.condition || 'N/A'}

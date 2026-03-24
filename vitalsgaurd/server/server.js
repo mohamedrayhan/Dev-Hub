@@ -1,9 +1,9 @@
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
-const express  = require("express");
-const cors     = require("cors");
-const axios    = require("axios");
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
 const supabase = require("./supabase");
 
 const app = express();
@@ -153,21 +153,21 @@ app.post("/store-report", async (req, res) => {
     });
 
     const aiOut = response.data;
-    const confidenceScore = aiOut.lstm_result?.confidence 
-      ? Math.round(aiOut.lstm_result.confidence * 100) 
+    const confidenceScore = aiOut.lstm_result?.confidence
+      ? Math.round(aiOut.lstm_result.confidence * 100)
       : (aiOut.confidence ? Math.round(aiOut.confidence * 100) : null);
 
     // 2. Save the scan metrics AND the AI output into the database
     await supabase.from("medical_reports").insert([
       {
-        user_id:           userId || null,
-        scan_type:         scanType || 'Targeted Scan',
-        heart_rate:        heartRate,
-        spo2:              spo2,
-        temperature:       temperature,
-        condition:         aiOut.ui_label || aiOut.condition || "Unknown",
+        user_id: userId || null,
+        scan_type: scanType || 'Targeted Scan',
+        heart_rate: heartRate,
+        spo2: spo2,
+        temperature: temperature,
+        condition: aiOut.ui_label || aiOut.condition || "Unknown",
         diagnosis_summary: aiOut.voice_summary || aiOut.consensus || "No details",
-        confidence_score:  confidenceScore
+        confidence_score: confidenceScore
       },
     ]);
 

@@ -9,7 +9,7 @@ export default function TargetedScan() {
   const [hr, setHr] = useState(75);
   const [spo2, setSpo2] = useState(98);
   const [temp, setTemp] = useState(36.6);
-  
+
   const [analyzing, setAnalyzing] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [error, setError] = useState(null);
@@ -39,7 +39,7 @@ export default function TargetedScan() {
       } else {
         throw new Error(response.data.message || 'Analysis proxy failed');
       }
-      
+
     } catch (err) {
       console.error(err);
       setError('Health analysis system is currently unavailable.');
@@ -63,7 +63,7 @@ export default function TargetedScan() {
         <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '12px', border: '1px solid #334155', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
             <h2 style={{ color: '#38bdf8', fontSize: '1.1rem', marginTop: 0, marginBottom: '1.5rem' }}>⚙️ Scan Parameters</h2>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Heart Rate: <strong>{hr} BPM</strong></label>
@@ -77,10 +77,10 @@ export default function TargetedScan() {
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Body Temp: <strong>{temp} °C</strong></label>
                 <input type="range" min="35" max="41" step="0.1" value={temp} onChange={e => setTemp(Number(e.target.value))} style={{ width: '100%', cursor: 'pointer' }} />
               </div>
-              
-              <button 
-                onClick={handleAnalyze} 
-                disabled={analyzing} 
+
+              <button
+                onClick={handleAnalyze}
+                disabled={analyzing}
                 style={{ width: '100%', padding: '1rem', marginTop: '1rem', background: analyzing ? '#475569' : '#38bdf8', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: analyzing ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontSize: '1rem' }}
               >
                 {analyzing ? '⚡ ANALYZING...' : '🚀 RUN TARGETED SCAN'}
@@ -110,7 +110,7 @@ export default function TargetedScan() {
             <div style={{ color: '#38bdf8', fontWeight: 'bold', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '4px' }}>LIVE SCANNING</div>
             <div style={{ width: '40px', height: '2px', background: '#38bdf8', animation: 'pulse 2s infinite' }}></div>
           </div>
-          
+
           <DigitalTwin scanData={scanResult} isScanning={analyzing} />
 
           {error && (
@@ -123,7 +123,7 @@ export default function TargetedScan() {
           )}
         </section>
       </main>
-      
+
       <style>{`
         @keyframes pulse {
           0% { opacity: 1; width: 40px; }
